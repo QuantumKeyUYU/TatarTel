@@ -1,52 +1,101 @@
-(function(){
-  const tabBtns = document.querySelectorAll('#tabs button');
-  const tt = document.getElementById('tt');
-  const tr = document.getElementById('tr');
-  const ru = document.getElementById('ru');
-  const bar = document.getElementById('bar');
-  const next = document.getElementById('next');
-  const btnCopy = document.getElementById('copy');
-  const btnShare = document.getElementById('share');
+import { DATA } from './data.js?v=5';
 
-  let tab = 'phrase';
-  let i = 0;
+const APP_VERSION = '5';
+const els = {
+  tabButtons: Array.from(document.querySelectorAll('.segmented__btn')),
+  tt: document.getElementById('tt'),
+  tr: document.getElementById('tr'),
+  ru: document.getElementById('ru'),
+  bar: document.getElementById('bar'),
+  next: document.getElementById('nextBtn'),
+  copy: document.getElementById('copyBtn'),
+  share: document.getElementById('shareBtn'),
+};
 
-  function setActive(name){
-    tab = name; i = 0;
-    tabBtns.forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
-    render();
-  }
+let state = {
+  tab: localStorage.getItem('tab') || 'phrases',
+  seen: { phrases: new Set(), proverbs: new Set(), facts: new Set() }
+};
 
-  function progress(){
-    const total = (window.DATA[tab]||[]).length || 1;
-    bar.style.width = Math.max(10, Math.round((i+1)/total*100)) + '%';
-  }
+function pickRandom(list, bucket){
+  if (bucket.size >= list.length) bucket.clear(); // цикл закончился — начинаем снова
+  let i;
+  do { i = Math.floor(Math.random()*list.length); } while (bucket.has(i));
+  bucket.add(i);
+  return list[i];
+}
 
-  function render(){
-    const arr = window.DATA[tab] || [];
-    if(!arr.length){ tt.textContent='Пусто'; tr.textContent=''; ru.textContent=''; progress(); return; }
-    const item = arr[i % arr.length];
-    tt.textContent = item.tt || '';
-    tr.textContent = item.tr || '';
-    ru.textContent = item.ru || '';
-    progress();
-  }
+function render(entry){
+  els.tt.textContent = entry.tt;
+  els.tr.textContent = `[${entry.tr}]`;
+  els.ru.textContent = entry.ru;
+  els.bar.style.width = `${20 + Math.random()*75}%`;
+}
 
-  tabBtns.forEach(b => b.addEventListener('click', () => setActive(b.dataset.tab)));
-  next.addEventListener('click', () => { i = (i + 1) % ((window.DATA[tab]||[]).length || 1); render(); });
+function next(){
+  const list = DATA[state.tab];
+  const bucket = state.seen[state.tab];
+  render(pickRandom(list, bucket));
+}
 
-  btnCopy.addEventListener('click', async () => {
-    const text = `${tt.textContent}\n${tr.textContent}\n${ru.textContent}`.trim();
-    try { await navigator.clipboard.writeText(text); next.textContent='Скопировано!'; setTimeout(()=>next.textContent='Ещё вариант', 900); }
-    catch(e){ alert('Не удалось скопировать'); }
+function setTab(tab){
+  state.tab = tab;
+  localStorage.setItem('tab', tab);
+  els.tabButtons.forEach(b=>{
+    const active = b.dataset.tab === tab;
+    b.classList.toggle('is-active', active);
+    b.setAttribute('aria-selected', String(active));
   });
+  next();
+}
 
-  btnShare.addEventListener('click', async () => {
-    const text = `${tt.textContent}\n${tr.textContent}\n${ru.textContent}`.trim();
-    if(navigator.share){ try{ await navigator.share({text}); } catch(e){} } else { alert(text); }
+els.tabButtons.forEach(btn=>{
+  btn.addEventListener('click', ()=> setTab(btn.dataset.tab));
+});
+
+els.next.addEventListener('click', next);
+
+els.copy.addEventListener('click', async ()=>{
+  const text = `${els.tt.textContent}\n${els.tr.textContent}\n${els.ru.textContent}`;
+  try{
+    await navigator.clipboard.writeText(text);
+    toast('Скопировано');
+  }catch{ toast('Не удалось скопировать'); }
+});
+
+els.share.addEventListener('click', async ()=>{
+  const payload = {
+    title: 'TATARÇA',
+    text: `${els.tt.textContent} • ${els.ru.textContent}`,
+    url: location.href
+  };
+  if (navigator.share) {
+    try{ await navigator.share(payload); }catch{}
+  } else {
+    await navigator.clipboard.writeText(`${payload.text}\n${payload.url}`);
+    toast('Ссылка скопирована');
+  }
+});
+
+function toast(msg){
+  const t = document.createElement('div');
+  t.textContent = msg;
+  Object.assign(t.style, {
+    position:'fixed', left:'50%', bottom:'24px', transform:'translateX(-50%)',
+    background:'#2b2747', color:'#fff', padding:'10px 14px', borderRadius:'12px',
+    boxShadow:'0 8px 24px rgba(0,0,0,.18)', zIndex:9999, fontWeight:700
   });
+  document.body.appendChild(t);
+  setTimeout(()=> t.remove(), 1400);
+}
 
-  if('serviceWorker' in navigator){ navigator.serviceWorker.register('./service-worker.js'); }
+// restore tab & show first entry
+setTab(state.tab);
 
-  render();
-})();
+// PWA: регистрация service worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register(`service-worker.js?v=${APP_VERSION}`)
+      .catch(()=>{});
+  });
+}
