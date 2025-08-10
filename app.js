@@ -1,52 +1,70 @@
-(function(){
-  const tabBtns = document.querySelectorAll('#tabs button');
-  const tt = document.getElementById('tt');
-  const tr = document.getElementById('tr');
-  const ru = document.getElementById('ru');
-  const bar = document.getElementById('bar');
-  const next = document.getElementById('next');
-  const btnCopy = document.getElementById('copy');
-  const btnShare = document.getElementById('share');
+import { DATA } from './data.js?v=7';
 
-  let tab = 'phrase';
-  let i = 0;
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
 
-  function setActive(name){
-    tab = name; i = 0;
-    tabBtns.forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
-    render();
+let currentTab = 'phrases';
+let index = 0;
+let pool = shuffle([...DATA[currentTab]]);
+
+function shuffle(a) {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
   }
+  return a;
+}
 
-  function progress(){
-    const total = (window.DATA[tab]||[]).length || 1;
-    bar.style.width = Math.max(10, Math.round((i+1)/total*100)) + '%';
+function updateCard(item) {
+  $('#tt').textContent = item.tt || '';
+  $('#tr').textContent = item.tr ? `[${item.tr}]` : '';
+  $('#ru').textContent = item.ru || '';
+  const p = ((index + 1) / pool.length) * 100;
+  $('#bar').style.width = `${p}%`;
+}
+
+function next() {
+  index = (index + 1) % pool.length;
+  updateCard(pool[index]);
+}
+
+function setTab(tab) {
+  currentTab = tab;
+  pool = shuffle([...DATA[currentTab]]);
+  index = 0;
+  $$('.tab').forEach(b => b.classList.toggle('is-active', b.dataset.tab === tab));
+  updateCard(pool[index]);
+}
+
+$('#nextBtn').addEventListener('click', next);
+
+$('#copyBtn').addEventListener('click', async () => {
+  const t = `${$('#tt').textContent}\n${$('#tr').textContent}\n${$('#ru').textContent}`.trim();
+  try {
+    await navigator.clipboard.writeText(t);
+    toast('Скопировано!');
+  } catch { toast('Не удалось скопировать'); }
+});
+
+$('#shareBtn').addEventListener('click', async () => {
+  const text = `${$('#tt').textContent} — ${$('#ru').textContent}`;
+  if (navigator.share) {
+    try { await navigator.share({ text }); } catch {}
+  } else {
+    await navigator.clipboard.writeText(text);
+    toast('Ссылка/текст в буфере');
   }
+});
 
-  function render(){
-    const arr = window.DATA[tab] || [];
-    if(!arr.length){ tt.textContent='Пусто'; tr.textContent=''; ru.textContent=''; progress(); return; }
-    const item = arr[i % arr.length];
-    tt.textContent = item.tt || '';
-    tr.textContent = item.tr || '';
-    ru.textContent = item.ru || '';
-    progress();
-  }
+$$('.tab').forEach(b => b.addEventListener('click', () => setTab(b.dataset.tab)));
 
-  tabBtns.forEach(b => b.addEventListener('click', () => setActive(b.dataset.tab)));
-  next.addEventListener('click', () => { i = (i + 1) % ((window.DATA[tab]||[]).length || 1); render(); });
+function toast(msg) {
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1500);
+}
 
-  btnCopy.addEventListener('click', async () => {
-    const text = `${tt.textContent}\n${tr.textContent}\n${ru.textContent}`.trim();
-    try { await navigator.clipboard.writeText(text); next.textContent='Скопировано!'; setTimeout(()=>next.textContent='Ещё вариант', 900); }
-    catch(e){ alert('Не удалось скопировать'); }
-  });
-
-  btnShare.addEventListener('click', async () => {
-    const text = `${tt.textContent}\n${tr.textContent}\n${ru.textContent}`.trim();
-    if(navigator.share){ try{ await navigator.share({text}); } catch(e){} } else { alert(text); }
-  });
-
-  if('serviceWorker' in navigator){ navigator.serviceWorker.register('./service-worker.js'); }
-
-  render();
-})();
+// старт
+setTab('phrases');
