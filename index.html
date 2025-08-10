@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TATARÇA • web</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <meta name="theme-color" content="#6B5CD6">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>TATARÇA • җанлы сүзләр</h1>
+    <nav id="tabs">
+      <button data-tab="phrase" class="active">ФРАЗА</button>
+      <button data-tab="proverb">ПОСЛОВИЦА</button>
+      <button data-tab="fact">ФАКТ</button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="card">
+      <div class="badge">Татарча</div>
+      <h2 id="tt"></h2>
+      <div id="tr" class="tr"></div>
+      <div id="ru" class="ru"></div>
+
+      <div class="row">
+        <button id="copy">Скопировать</button>
+        <button id="share">Поделиться</button>
+      </div>
+
+      <div class="progress"><div id="bar"></div></div>
+    </section>
+
+    <button id="next" class="primary">Ещё вариант</button>
+  </main>
+
+  <footer>
+    • Татарские фразы, пословицы и факты •
+  </footer>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
