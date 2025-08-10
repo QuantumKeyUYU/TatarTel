@@ -1,59 +1,56 @@
-// service-worker.js
-// Версионирование кэша — меняй V при каждом деплое
-const V = '8';
+// service-worker.js (v9)
+const V = '9';
 const CACHE = `tatar-pwa-v${V}`;
-const ASSETS = [
+const CORE = [
   './',
-  './index.html?v=8',
-  './styles.css?v=8',
-  './app.js?v=8',
-  './data.js?v=8',
-  './manifest.webmanifest?v=8'
+  './index.html?v=9',
+  './styles.css?v=9',
+  './app.js?v=9',
+  './data.js?v=9',
+  './tatartele.png',
+  './manifest.webmanifest?v=9',
+  './icons/icon-192.png',
+  './icons/icon-512.png'
 ];
 
-self.addEventListener('install', e => {
-  e.waitUntil((async () => {
-    const c = await caches.open(CACHE);
-    await c.addAll(ASSETS);
-    self.skipWaiting();
-  })());
+self.addEventListener('install', (e)=>{
+  self.skipWaiting();
+  e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE)));
 });
 
-self.addEventListener('activate', e => {
-  e.waitUntil((async () => {
+self.addEventListener('activate', (e)=>{
+  e.waitUntil((async()=>{
     const keys = await caches.keys();
-    await Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)));
+    await Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)));
     await self.clients.claim();
   })());
 });
 
-self.addEventListener('fetch', e => {
+// data.js — network first (чтобы обновления прилетали)
+self.addEventListener('fetch', (e)=>{
   const url = new URL(e.request.url);
-
-  // network-first для data.js, чтобы обновления прилетали сразу
-  if (url.pathname.endsWith('data.js')) {
-    e.respondWith((async () => {
-      try {
+  if (url.pathname.endsWith('/data.js') || url.pathname.endsWith('data.js')) {
+    e.respondWith((async()=>{
+      try{
         const fresh = await fetch(e.request);
-        const c = await caches.open(CACHE);
-        c.put(e.request, fresh.clone());
+        const cache = await caches.open(CACHE);
+        cache.put(e.request, fresh.clone());
         return fresh;
-      } catch {
-        const c = await caches.open(CACHE);
-        return (await c.match(e.request)) || new Response('export const DATA={phrases:[],proverbs:[],facts:[]};', {headers:{'Content-Type':'application/javascript'}});
+      }catch{
+        const cache = await caches.open(CACHE);
+        return (await cache.match(e.request)) || new Response('export const DATA={phrases:[],proverbs:[],facts:[]};',{headers:{'Content-Type':'application/javascript'}});
       }
     })());
     return;
   }
 
-  // cache-first для остального с подзагрузкой обновлений
-  e.respondWith((async () => {
-    const c = await caches.open(CACHE);
-    const cached = await c.match(e.request);
-    const fetchPromise = fetch(e.request).then(res => {
-      c.put(e.request, res.clone());
-      return res;
-    }).catch(() => cached);
-    return cached || fetchPromise;
-  })());
+  // остальное — cache first + SWR
+  if (e.request.method==='GET' && url.origin === self.location.origin) {
+    e.respondWith((async()=>{
+      const cache = await caches.open(CACHE);
+      const hit = await cache.match(e.request);
+      const fetchPromise = fetch(e.request).then(res => { cache.put(e.request, res.clone()); return res; }).catch(()=>hit);
+      return hit || fetchPromise;
+    })());
+  }
 });
