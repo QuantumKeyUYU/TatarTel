@@ -1,65 +1,50 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>TATARÇA • җанлы сүзләр</title>
-
-  <link rel="manifest" href="./manifest.webmanifest?v=9">
-  <meta name="theme-color" content="#5f4bc6">
-  <link rel="apple-touch-icon" href="./icons/icon-192.png">
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-
-  <link rel="stylesheet" href="./styles.css?v=9">
+  <link rel="manifest" href="manifest.webmanifest?v=9" />
+  <link rel="icon" href="icons/icon-192.png" sizes="192x192" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <meta name="theme-color" content="#5f49c6" />
+  <link rel="stylesheet" href="styles.css?v=9" />
 </head>
 <body>
-  <header class="container header">
-    <h1>TATARÇA • җанлы сүзләр</h1>
-    <nav class="segmented" role="tablist" aria-label="Категории">
-      <button class="segmented__btn is-active" role="tab" aria-selected="true" data-tab="phrases">ФРАЗА</button>
-      <button class="segmented__btn" role="tab" aria-selected="false" data-tab="proverbs">ПОСЛОВИЦА</button>
-      <button class="segmented__btn" role="tab" aria-selected="false" data-tab="facts">ФАКТ</button>
-    </nav>
+  <!-- маска, которая приглушает фон -->
+  <div class="page-wash" aria-hidden="true"></div>
+
+  <header class="header">
+    <h1 class="title">TATARÇA • җанлы сүзләр</h1>
+    <div class="segmented" role="tablist" aria-label="Категории">
+      <button class="segmented__btn is-active tab" data-tab="phrases" role="tab" aria-selected="true">ФРАЗА</button>
+      <button class="segmented__btn tab" data-tab="proverbs" role="tab" aria-selected="false">ПОСЛОВИЦА</button>
+      <button class="segmented__btn tab" data-tab="facts" role="tab" aria-selected="false">ФАКТ</button>
+    </div>
   </header>
 
   <main class="container">
-    <!-- карточка -->
     <section class="card" aria-live="polite">
       <div class="card__badge">Татарча</div>
-      <h2 id="tt" class="card__title">Сәлам!</h2>
-      <p id="tr" class="card__tr">[Sälam!]</p>
-      <p id="ru" class="card__ru">Привет!</p>
 
-      <div class="row gap mt">
-        <button id="copyBtn" class="btn outline">Скопировать</button>
-        <button id="shareBtn" class="btn outline">Поделиться</button>
-        <button id="speakBtn" class="btn outline" aria-label="Озвучить">🔊 Озвучить</button>
-        <button id="handBtn" class="btn outline">Режим письма</button>
+      <h2 id="tt" class="card__tt">—</h2>
+      <div id="tr" class="card__tr">—</div>
+      <p id="ru" class="card__ru">—</p>
+
+      <div class="card__actions">
+        <button id="copyBtn" class="btn btn--ghost">Скопировать</button>
+        <button id="shareBtn" class="btn btn--ghost">Поделиться</button>
+        <button id="handBtn" class="btn btn--ghost" hidden>Режим письма</button>
       </div>
 
-      <div class="bar">
-        <div id="bar" class="bar__fill" style="width: 35%"></div>
-      </div>
-
-      <!-- handwriting -->
-      <div id="padBox" hidden>
-        <canvas id="pad" width="1200" height="600" aria-label="Поле письма"></canvas>
-        <div class="row gap">
-          <button id="padClear" class="btn outline">Очистить</button>
-          <button id="padHide" class="btn outline">Скрыть</button>
-          <button id="padSave" class="btn outline">Сохранить PNG</button>
-        </div>
-      </div>
+      <div class="progress"><div id="bar" class="progress__bar"></div></div>
     </section>
 
-    <button id="nextBtn" class="btn primary wide">Ещё вариант</button>
-
-    <p class="muted small mt2">• Татарские фразы, пословицы и факты •</p>
+    <button id="nextBtn" class="cta">Ещё вариант</button>
   </main>
 
-  <script type="module" src="./app.js?v=9"></script>
+  <footer class="footer">• Татарские фразы, пословицы и факты •</footer>
+
+  <script type="module" src="app.js?v=9"></script>
 </body>
 </html>
