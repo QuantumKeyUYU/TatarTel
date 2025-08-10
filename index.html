@@ -1,47 +1,50 @@
 <!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>TATARÇA • web</title>
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" href="icons/icon-192.png">
-  <meta name="theme-color" content="#6B5CD6">
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TATARÇA • җанлы сүзләр</title>
+  <link rel="manifest" href="./manifest.webmanifest?v=7">
+  <link rel="stylesheet" href="./styles.css?v=7">
+  <meta name="theme-color" content="#5f51d8">
 </head>
 <body>
-  <header>
+  <header class="container">
     <h1>TATARÇA • җанлы сүзләр</h1>
-    <nav id="tabs">
-      <button data-tab="phrase" class="active">ФРАЗА</button>
-      <button data-tab="proverb">ПОСЛОВИЦА</button>
-      <button data-tab="fact">ФАКТ</button>
+    <nav class="tabs">
+      <button data-tab="phrases" class="tab is-active">ФРАЗА</button>
+      <button data-tab="proverbs" class="tab">ПОСЛОВИЦА</button>
+      <button data-tab="facts" class="tab">ФАКТ</button>
     </nav>
   </header>
 
-  <main>
+  <main class="container">
     <section class="card">
-      <div class="badge">Татарча</div>
+      <span class="badge">Татарча</span>
       <h2 id="tt"></h2>
-      <div id="tr" class="tr"></div>
-      <div id="ru" class="ru"></div>
+      <p class="tr" id="tr"></p>
+      <p class="ru" id="ru"></p>
 
-      <div class="row">
-        <button id="copy">Скопировать</button>
-        <button id="share">Поделиться</button>
+      <div class="actions">
+        <button id="copyBtn">Скопировать</button>
+        <button id="shareBtn">Поделиться</button>
       </div>
 
-      <div class="progress"><div id="bar"></div></div>
+      <div class="progress"><span id="bar"></span></div>
     </section>
 
-    <button id="next" class="primary">Ещё вариант</button>
+    <button id="nextBtn" class="cta">Ещё вариант</button>
+
+    <footer class="muted">
+      • Татарские фразы, пословицы и факты •
+    </footer>
   </main>
 
-  <footer>
-    • Татарские фразы, пословицы и факты •
-  </footer>
-
-  <script src="data.js"></script>
-  <script src="app.js"></script>
+  <script type="module" src="./app.js?v=7"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./service-worker.js?v=7');
+    }
+  </script>
 </body>
 </html>

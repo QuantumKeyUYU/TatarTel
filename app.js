@@ -1,8 +1,11 @@
-import { DATA } from './data.js?v=5';
+// app.js
+import { DATA } from './data.js?v=8';
 
-const APP_VERSION = '5';
+const APP_VERSION = '8';
+
+// элементы
 const els = {
-  tabButtons: Array.from(document.querySelectorAll('.segmented__btn')),
+  tabButtons: Array.from(document.querySelectorAll('[data-tab]')),
   tt: document.getElementById('tt'),
   tr: document.getElementById('tr'),
   ru: document.getElementById('ru'),
@@ -18,7 +21,8 @@ let state = {
 };
 
 function pickRandom(list, bucket){
-  if (bucket.size >= list.length) bucket.clear(); // цикл закончился — начинаем снова
+  if (!Array.isArray(list) || list.length === 0) return {tt:'',tr:'',ru:''};
+  if (bucket.size >= list.length) bucket.clear(); // прошли круг — начинаем заново
   let i;
   do { i = Math.floor(Math.random()*list.length); } while (bucket.has(i));
   bucket.add(i);
@@ -26,9 +30,10 @@ function pickRandom(list, bucket){
 }
 
 function render(entry){
-  els.tt.textContent = entry.tt;
-  els.tr.textContent = `[${entry.tr}]`;
-  els.ru.textContent = entry.ru;
+  els.tt.textContent = entry.tt || '';
+  els.tr.textContent = entry.tr ? `[${entry.tr}]` : '';
+  els.ru.textContent = entry.ru || '';
+  // псевдо-прогресс
   els.bar.style.width = `${20 + Math.random()*75}%`;
 }
 
@@ -53,17 +58,17 @@ els.tabButtons.forEach(btn=>{
   btn.addEventListener('click', ()=> setTab(btn.dataset.tab));
 });
 
-els.next.addEventListener('click', next);
+els.next?.addEventListener('click', next);
 
-els.copy.addEventListener('click', async ()=>{
-  const text = `${els.tt.textContent}\n${els.tr.textContent}\n${els.ru.textContent}`;
+els.copy?.addEventListener('click', async ()=>{
+  const text = `${els.tt.textContent}\n${els.tr.textContent}\n${els.ru.textContent}`.trim();
   try{
     await navigator.clipboard.writeText(text);
     toast('Скопировано');
   }catch{ toast('Не удалось скопировать'); }
 });
 
-els.share.addEventListener('click', async ()=>{
+els.share?.addEventListener('click', async ()=>{
   const payload = {
     title: 'TATARÇA',
     text: `${els.tt.textContent} • ${els.ru.textContent}`,
@@ -89,13 +94,12 @@ function toast(msg){
   setTimeout(()=> t.remove(), 1400);
 }
 
-// restore tab & show first entry
+// старт: восстановить вкладку и показать запись
 setTab(state.tab);
 
 // PWA: регистрация service worker
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register(`service-worker.js?v=${APP_VERSION}`)
-      .catch(()=>{});
+    navigator.serviceWorker.register(`service-worker.js?v=${APP_VERSION}`).catch(()=>{});
   });
 }
