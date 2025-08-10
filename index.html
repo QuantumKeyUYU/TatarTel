@@ -4,14 +4,13 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>TATARÇA • җанлы сүзләр</title>
-  <link rel="manifest" href="manifest.webmanifest?v=9" />
+  <link rel="manifest" href="manifest.webmanifest?v=10" />
   <link rel="icon" href="icons/icon-192.png" sizes="192x192" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
   <meta name="theme-color" content="#5f49c6" />
-  <link rel="stylesheet" href="styles.css?v=9" />
+  <link rel="stylesheet" href="styles.css?v=10" />
 </head>
 <body>
-  <!-- маска, которая приглушает фон -->
   <div class="page-wash" aria-hidden="true"></div>
 
   <header class="header">
@@ -34,7 +33,7 @@
       <div class="card__actions">
         <button id="copyBtn" class="btn btn--ghost">Скопировать</button>
         <button id="shareBtn" class="btn btn--ghost">Поделиться</button>
-        <button id="handBtn" class="btn btn--ghost" hidden>Режим письма</button>
+        <button id="handBtn" class="btn btn--ghost">Режим письма</button>
       </div>
 
       <div class="progress"><div id="bar" class="progress__bar"></div></div>
@@ -45,6 +44,68 @@
 
   <footer class="footer">• Татарские фразы, пословицы и факты •</footer>
 
-  <script type="module" src="app.js?v=9"></script>
+  <!-- Полотно для рисования -->
+  <div id="drawOverlay" style="display:none; position:fixed; inset:0; background:#fff; z-index:9999;">
+    <canvas id="drawCanvas" style="display:block; width:100%; height:100%;"></canvas>
+    <button id="exitDraw" style="
+      position:absolute; top:16px; right:16px;
+      background:#5f49c6; color:#fff; border:none;
+      padding:12px 18px; font-weight:bold; border-radius:8px;
+      box-shadow:0 4px 12px rgba(0,0,0,0.25);
+    ">Выйти</button>
+  </div>
+
+  <script type="module" src="app.js?v=10"></script>
+  <script>
+    // Режим письма
+    const handBtn = document.getElementById('handBtn');
+    const drawOverlay = document.getElementById('drawOverlay');
+    const exitDraw = document.getElementById('exitDraw');
+    const canvas = document.getElementById('drawCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let drawing = false;
+
+    function resizeCanvas(){
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function startDraw(e){
+      drawing = true;
+      ctx.beginPath();
+      ctx.moveTo(e.clientX || e.touches[0].clientX, e.clientY || e.touches[0].clientY);
+    }
+    function draw(e){
+      if(!drawing) return;
+      ctx.lineWidth = 4;
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = '#000';
+      ctx.lineTo(e.clientX || e.touches[0].clientX, e.clientY || e.touches[0].clientY);
+      ctx.stroke();
+    }
+    function stopDraw(){
+      drawing = false;
+      ctx.closePath();
+    }
+
+    handBtn.addEventListener('click', ()=>{
+      drawOverlay.style.display = 'block';
+    });
+    exitDraw.addEventListener('click', ()=>{
+      drawOverlay.style.display = 'none';
+    });
+
+    canvas.addEventListener('mousedown', startDraw);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDraw);
+    canvas.addEventListener('mouseout', stopDraw);
+
+    canvas.addEventListener('touchstart', startDraw);
+    canvas.addEventListener('touchmove', draw);
+    canvas.addEventListener('touchend', stopDraw);
+  </script>
 </body>
 </html>
